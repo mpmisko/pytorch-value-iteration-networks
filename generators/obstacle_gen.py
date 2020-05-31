@@ -18,6 +18,7 @@ class obstacles:
         self.obs_types = obs_types or ["circ", "rect"]
         self.num_types = num_types or len(self.obs_types)
         self.size_max = size_max or np.max(self.domsize) / 4
+        self.obstacles = []
 
     def check_mask(self, dom=None):
         # Ensure goal is in free space
@@ -34,24 +35,30 @@ class obstacles:
 
     def add_rand_obs(self, obj_type):
         # Add random (valid) obstacle to map
+        rand_height = int(np.ceil(np.random.rand() * self.size_max))
+        rand_width = int(np.ceil(np.random.rand() * self.size_max))
+        randx = int(np.ceil(np.random.rand() * (self.domsize[1] - 1)))
+        randy = int(np.ceil(np.random.rand() * (self.domsize[1] - 1)))
+
         if obj_type == "circ":
             print("circ is not yet implemented... sorry")
         elif obj_type == "rect":
-            rand_height = int(np.ceil(np.random.rand() * self.size_max))
-            rand_width = int(np.ceil(np.random.rand() * self.size_max))
-            randx = int(np.ceil(np.random.rand() * (self.domsize[1] - 1)))
-            randy = int(np.ceil(np.random.rand() * (self.domsize[1] - 1)))
             im_try = self.insert_rect(randx, randy, rand_height, rand_width)
+
         if self.check_mask(im_try):
             return False
         else:
             self.dom = im_try
+            off_w = rand_width
+            off_h = rand_height
+
+            self.obstacles.append([randy + (off_w - 1) / 2, randx + (off_h - 1) / 2, rand_width, rand_height])
             return True
 
     def add_n_rand_obs(self, n):
         # Add random (valid) obstacles to map
         count = 0
-        for i in range(n):
+        while not count == n:
             obj_type = "rect"
             if self.add_rand_obs(obj_type):
                 count += 1
@@ -64,6 +71,23 @@ class obstacles:
         im_try[0, 0:self.domsize[1]] = 1
         im_try[0:self.domsize[0], self.domsize[1] - 1] = 1
         im_try[self.domsize[0] - 1, 0:self.domsize[1]] = 1
+
+        self.obstacles.append(
+            [self.domsize[0] / 2 + (1 / 2) + 100, 0, self.domsize[0], 1]
+        )
+
+        self.obstacles.append(
+            [self.domsize[0] / 2 + (1 / 2) + 100, self.domsize[1] - 1, self.domsize[0], 1]
+        )
+
+        self.obstacles.append(
+            [100, self.domsize[1] / 2 + (1 / 2), 1, self.domsize[1]]
+        )
+
+        self.obstacles.append(
+            [100 + self.domsize[0] - 1, self.domsize[1] / 2 + (1 / 2), 1, self.domsize[1]]
+        )
+
         if self.check_mask(im_try):
             return False
         else:
@@ -75,11 +99,11 @@ class obstacles:
         im = np.copy(self.dom)
         im = np.max(im) - im
         im = im / np.max(im)
-        return im
+        return im, self.obstacles
 
     def show(self):
         # Utility function to view obstacle map
-        plt.imshow(self.get_final(), cmap='Greys')
+        plt.imshow(self.get_final()[0], cmap='Greys')
         plt.show()
 
     def _print(self):

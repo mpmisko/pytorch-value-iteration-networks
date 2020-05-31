@@ -27,9 +27,9 @@ def main(config,
     # Automatic swith of GPU mode if available
     use_GPU = torch.cuda.is_available()
     # Instantiate a VIN model
-    vin = VIN(config)
+  #  vin = VIN(config)
     # Load model parameters
-    vin.load_state_dict(torch.load(config.weights))
+  #  vin.load_state_dict(torch.load(config.weights))
     # Use GPU if available
     if use_GPU:
         vin = vin.cuda()
